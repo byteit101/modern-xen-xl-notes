@@ -4,8 +4,7 @@
 :license: Creative Commons Attribution-ShareAlike 4.0
 :toc:
 
-This document recommends how to configure disks in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html[man 5 xl-disk-configuration]. For the other pages of this document, see 
-See xref:xenhelp-basic.adoc[the overview page].
+This document recommends how to configure disks in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html[man 5 xl-disk-configuration]. For the other pages of this document, see xref:xenhelp-basics.adoc[the overview page].
 
 Recommended format examples:
 ```ini
@@ -33,7 +32,7 @@ A * indicates the default value in this overview
  * `direct-io-safe`. If the device is not a network device. It is a keyword, and thus has no value.
  * `script=` {`iscsi`, `nbd`, `enbd`, `drbd-probe`, `tap`, ...}. If specified, interpret `target` as arguments to the script in `/etc/xen/script/block-$SCRIPT`.
  
-For other details and options, including `backend=`, `colo=`, and `discard`, see the https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html#Other-Parameters-And-Flags[man page].
+For other details and options, including `backend=`, `colo=`, and `discard`, see the https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html#Other-Parameters-And-Flags[xl-disk-configuration man page].
 
 == Choosing a vdev name
 

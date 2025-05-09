@@ -4,8 +4,7 @@
 :license: Creative Commons Attribution-ShareAlike 4.0
 :toc:
 
-This document recommends how to configure booting in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg]. For the other pages of this document, see 
-See xref:xenhelp-basic.adoc[the overview page].
+This document recommends how to configure booting in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg]. For the other pages of this document, see xref:xenhelp-basics.adoc[the overview page].
 
 == Picking a Type
 
@@ -85,7 +84,7 @@ HVM has a variety of ways to boot:
 * BIOS
 * UEFI (Not recommended if you can avoid, can be buggy & slow)
 
-CAUTION: You may need to adjust the kernel and/or bootloader to use the correct serial port to work with HVM. See xlink:xenhelp-basics.adoc#_serial_console_options[the overview on serial options] for details.
+CAUTION: You may need to adjust the kernel and/or bootloader to use the correct serial port to work with HVM. See xref:xenhelp-basics.adoc#serial_console_options[the overview on serial options] for details.
 
 === Recommended base configuration for Linux guests (without graphics)
 
@@ -131,7 +130,7 @@ viridian = 1
 
 === Booting - UEFI
 
-UEFI is the most persnickety of HVM boot options. The xl configuration is trivial, but actually can be tricky to set up beyond the configuration. SCSI devices can't be enabled (see xref:xenhelp-dis.adoc[Modern Disk Configuration in XL]). I have found that I have to enable graphics, watch the first boot via VNC, and ensure everything is working well. UEFI is provided via OVMF, and OVMF must be compiled with Xen support (see below)
+UEFI is the most persnickety of HVM boot options. The xl configuration is trivial, but actually can be tricky to set up beyond the configuration. SCSI devices can't be enabled (see xref:xenhelp-disk.adoc[Modern Disk Configuration in XL]). I have found that I have to enable graphics, watch the first boot via VNC, and ensure everything is working well. UEFI is provided via OVMF, and OVMF must be compiled with Xen support (see below)
 
 Entering setup: `xl create -c` or connect to VNC. Mash the `ESC` key until it begins to load the gray screen.
 
@@ -197,7 +196,7 @@ cp /boot/efi/EFI/debian/grubx64.efi /boot/efi/EFI/boot/bootx64.efi
 
 The command `grub-probe` generates warnings if you use `xvda1` partitions, instead of `xvda` disks, so if you use GRUB2 with UEFI, you may want to use `xvda` style names even if you have partitions.
 
-IMPORTANT: Don't forget to adjust the kernel and bootloader to use the correct serial port to work with HVM. See xlink:xenhelp-basics.adoc#_serial_console_options[the overview on serial options] for details.
+IMPORTANT: Don't forget to adjust the kernel and bootloader to use the correct serial port to work with HVM. See xref:xenhelp-basics.adoc#serial_console_options[the overview on serial options] for details.
 
 === Booting - BIOS
 
