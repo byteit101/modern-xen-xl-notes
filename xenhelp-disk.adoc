@@ -1,0 +1,86 @@
+= Recommended domU XL Configuration in Xen: Disks
+:author: byteit101
+:revnumber: 2025050801
+:license: Creative Commons Attribution-ShareAlike 4.0
+:toc:
+
+This document recommends how to configure disks in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html[man 5 xl-disk-configuration]. For the other pages of this document, see 
+See xref:xenhelp-basic.adoc[the overview page].
+
+Recommended format examples:
+```ini
+disk = [
+    'vdev=xvda1,    target=/dev/lvm/example_partition',
+    'vdev=xvdb,     target=/dev/lvm/example_disk',
+    'vdev=xvdb, format=raw, access=rw, target=disk/by-partlabel/myvm_disk',
+    'vdev=sdc,  format=qcow2, access=rw, arget=/srv/example_disk2.qcow2',
+    'vdev=hdd,  format=raw, access=ro, cdrom, target=/srv/my.iso',
+]
+```
+Note this uses the keyword arguments format, and not the deprecated format found on most of the older wiki pages here. Additionally, `target=` is always last, so that the disk path can contain spaces, commas, etc.
+
+== Parameter overview
+
+For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html#Positional-Parameters[man 5 xl-disk-configuration]
+
+A * indicates the default value in this overview
+
+ * `format=` {`raw`*, `qcow`, `qcow2`, `vhd`, `qed`}
+ * `vdev=` disk name as visible to the guest/domU. one of hd[X], sd[X], xvd[X][Y]. See below
+ * `access=` {`ro`, `rw`*}. Note, cdrom's default to `ro`
+ * `target=` is the block device, image file path, or script arguments. Must be at the end of the disk specification
+ * `cdrom`. If the device is a cdrom. It is a keyword, and thus has no value.
+ * `direct-io-safe`. If the device is not a network device. It is a keyword, and thus has no value.
+ * `script=` {`iscsi`, `nbd`, `enbd`, `drbd-probe`, `tap`, ...}. If specified, interpret `target` as arguments to the script in `/etc/xen/script/block-$SCRIPT`.
+ 
+For other details and options, including `backend=`, `colo=`, and `discard`, see the https://xenbits.xen.org/docs/unstable/man/xl-disk-configuration.5.html#Other-Parameters-And-Flags[man page].
+
+== Choosing a vdev name
+
+This varies per domU type. In general, you should use `xvda`, `xvdb`, etc, for disks with partitions, and `xvda1`,  `xvdb1`, etc, for raw partitions/filesystems.
+
+ * `xvdX`, where `X` = an alphabetic character, represents a native Xen Virtual Block Device (VDB).
+ * `xvdXY`, where `X` = an alphabetic character, and `Y` = a number, represents a native Xen Virtual Block Device (VDB) partition.
+ * `hdX`, where `X` = an alphabetic character, represents an IDE drive emulated using QEMU (maximum of 4, see below) and also exposed as a VDB.
+ * `sdX`, where `X` = an alphabetic character, represents a SCSI drive emulated using QEMU (maximum of 4, see below) and also exposed as a VDB.
+
+`X` must be unique, ie. `hda` and `xvda` refer to the same drive, so the configuration can only define one of them. The emulated drives `a`, `b`, `c`, and `d` are the only drive letters that support `hdX` and `sdX` names. `hdf` is invalid; it must be defined using `xvdf`.
+
+For more detailed information, https://xenbits.xen.org/docs/unstable/man/xen-vbd-interface.7.html[man 7 xen-vbd-interface] has the lastest official information.
+ 
+If you are exposing a disk, use names without a partition number: `xvda`, `xvdb`, `xvdd`. Note that the names can be in any arbitrary order, including skipping letters, but we recommend keeping them sequential except in cases where you are hiding or reassembling a drive on HVM systems.
+
+If you are exposing a partition on a Xen VDB, use names with a partition number: `xvda1`, `xvdb7`, `xvdf1`. Note that the partition number can be arbitrary, though we recommend sticking to just 1. Additionally, as with disk names, do note that the names can also be in any arbitrary order, including skipping letters, but we recommend keeping them sequential.
+
+
+=== PV & PVH
+
+Uxe `xvd*` style names. `hdX` and `sdX` names are NOT supported.
+
+Assembling a "disk" from partitions is supported, but not recommended, as HVM doesn't support this setup. For example: `xvda1` `xvda2` `xvda3`
+
+=== HVM without drivers (Non-Linux)
+
+Use `sdX` names if your guest supports SCSI, or `hdX` otherwise. `xvd*` isn't supported.
+
+Expose `sda`, `sdb`, `sdc`, etc.
+
+#TODO: someone tell me any juicy Windows details?
+
+=== HVM with PV or PVHVM drivers - BIOS & Direct Kernel Boot
+
+Uxe `xvd*` style names. `hdX` and `sdX` names are supported, but only recommmended for the boot drives if you are using BIOS booting. Linux will automatically switch to `xvd*` variants, as Xen exposes all drives both through QEMU and Xen VDBs.
+
+Assembling a "disk" from partitions is NOT supported for disks `*a`-`*d`. This list of disks will fail: `xvda1` `xvda2` `xvda3`.
+
+Only the first 4 drives (`*a`-`*d`) may be `hdX`, the rest are forced to be `xvd*`
+
+=== HVM with PV or PVHVM drivers - UEFI
+
+Uxe `xvdX` style names for the boot disk, and `hdX` or `xvdX` style names for all other disks. `sdX` names are NOT supported. Using `sda` will cause a boot hang. Linux will automatically switch to `xvd*` variants, as Xen exposes all drives both through QEMU and Xen VDBs.
+
+If using `xvd*` style names for the boot disk fails, you are using a version of OVMF without Xen support (Debian 12 packages such a version). This may prevent seeing any progress on the console in grub.
+
+Assembling a "disk" from partitions is NOT supported for disks `*a`-`*d`. This list of disks will fail: `xvda1` `xvda2` `xvda3`
+
+Only the first 4 drives (`*a`-`*d`) may be `hdX`, the rest are forced to be `xvd*`.

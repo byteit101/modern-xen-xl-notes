@@ -1,7 +1,7 @@
-title: Jekyll AsciiDoc Quickstart
+title: Recommended domU XL Configuration in Xen
 # uncomment baseurl if you want to publish the site to a subfolder
 #baseurl: /blog
-description: The Jekyll AsciiDoc Quickstart project is a leg-up in starting your own website hosted on GitHub with content based in AsciiDoc.
+description: This document recommends how to configure most of XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg].
 exclude:
 - LICENSE
 - README.adoc

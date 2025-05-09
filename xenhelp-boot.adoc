@@ -1,0 +1,228 @@
+= Recommended domU XL Configuration in Xen: Type & Boot
+:author: byteit101
+:revnumber: 2025050801
+:license: Creative Commons Attribution-ShareAlike 4.0
+:toc:
+
+This document recommends how to configure booting in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg]. For the other pages of this document, see 
+See xref:xenhelp-basic.adoc[the overview page].
+
+== Picking a Type
+
+ * If your guest is native Linux, use PVH, unless you must use PCI passthrough, then use HVM with PVHVM for optimal performance.
+ * If your guest is a disk image of Linux, or another OS that doesn't support PVH yet, then use HVM with PVHVM enabled.
+ * Do not use PV if you can help it
+
+== PVH & PV
+
+PVH & PV are the simplest to configure in xl, but may require some work outside the xl configuration file. Simply specify the type, and the bootloader. There are several options on how to boot:
+
+* Direct kernel boot (Not recommended, as the kernel must be outside the VM disk)
+* PyGrub, based on GRUB 1. (Only recommended if xen-tools set it up for you)
+* PvGRUB, a build of GRUB 2 (Recommended)
+* Netbooting, see https://wiki.xenproject.org/wiki/Xenpvnetboot[Xenpvnetboot] for details
+* A custom wrapper, see https://wiki.xenproject.org/wiki/Setting_boot_order_for_domUs#xl_create_wrapper[xl create wrapper]
+* UEFI (not supported on PV)
+
+=== PVGRUB2 example
+The guest and the host must have grub2 compiled for Xen on it. Debian comes with `grub-xen` (for the guest) and `grub-xen-host` (for dom0) packaged. As with any grub2 package, the guest must run `grub-install` (performed by `apt` automatically) and `update-grub2` before booting.
+
+The command `grub-probe` generates warnings if you use `xvda1` partitions, instead of `xvda` disks, so if you use PVGRUB, you may want to use `xvda` style names even if you have partitions.
+
+==== PVH domains
+Note: `fimware = "pvgrub64"` isn't supported in the Debian build of Xen.
+
+```ini
+type = "pvh"
+kernel = "/usr/lib/grub-xen/grub-i386-xen_pvh.bin"
+```
+NOTE: PVH can boot both 32 and 64-bit from i386-xen_pvh
+
+==== PV domains
+```ini
+type = "pv"
+kernel = "/usr/lib/grub-xen/grub-x86_64-xen.bin"
+```
+NOTE: PV with 32-bit guests must use i386-xen instead
+
+=== PyGrub example
+The guest must have grub 1 installed (`apt install grub-legacy` on Debian)
+
+```ini
+type = "pvh"
+bootloader = "pygrub"
+```
+or
+```ini
+type = "pv"
+bootloader = "pygrub"
+```
+Optionally, you could set `extra = "(hd0)/boot/grub/menu.lst"` to use a different disk or file for pygrub to boot off of.
+
+=== Direct Kernel Boot
+
+In this configuration, we must store the kernel & initrd outside of the domU guest filesystem. In this example, they are stored in `/srv/myvm`.
+```ini
+type = "pvh"
+kernel = "/srv/myvm/vmlinuz"
+ramdisk = "/srv/myvm/initrd.img"
+cmdline = "root=/dev/xvda1 ro'
+```
+
+=== UEFI (PVH)
+
+In this configuration, the disk must be a full GPT disk with a ESP partition as a usual UEFI system. OVMF must be compiled with Xen support (not the default on Debian 12, see later)
+```ini
+type = "pvh"
+kernel = "/usr/share/ovmf/XEN_OVMF.fd"
+```
+
+== HVM
+
+HVM has a variety of ways to boot:
+
+* Direct kernel boot (Not recommended, as the kernel must be outside the VM disk)
+* BIOS
+* UEFI (Not recommended if you can avoid, can be buggy & slow)
+
+CAUTION: You may need to adjust the kernel and/or bootloader to use the correct serial port to work with HVM. See xlink:xenhelp-basics.adoc#_serial_console_options[the overview on serial options] for details.
+
+=== Recommended base configuration for Linux guests (without graphics)
+
+```ini
+type = "hvm"
+
+# Enable Xen PVHVM driver support
+xen_platform_pci = 1
+
+# Disable graphics modes for your typical linux server. Remove
+# these lines if you need graphics or want to debug using VNC.
+vnc = 0
+nographic = 1
+vga = "none"
+```
+
+Note that the serial console can be _VERY_ slow, so if you are debugging boot options, it's recommended to enable graphics:
+```ini
+#vnc = 1
+#nographic = 0
+#vga = "cirrus"
+vnclisten='0.0.0.0:5'
+```
+
+
+=== Recommended base configuration for Windows guests (with graphics)
+
+```ini
+type = "hvm"
+
+# Enable Xen PVHVM driver support (requires drivers)
+xen_platform_pci = 1
+
+# Enable Microsoft Hyper-V compatible paravirtualisation /
+# enlightenment interfaces. Turning this on can improve Windows guest
+# performance and is therefore recommended
+viridian = 1
+
+# VNC server address. By default, domains get a sequentially-increasing VNC number
+# listening on localhost
+#vnclisten='0.0.0.0:5'
+```
+
+=== Booting - UEFI
+
+UEFI is the most persnickety of HVM boot options. The xl configuration is trivial, but actually can be tricky to set up beyond the configuration. SCSI devices can't be enabled (see xref:xenhelp-dis.adoc[Modern Disk Configuration in XL]). I have found that I have to enable graphics, watch the first boot via VNC, and ensure everything is working well. UEFI is provided via OVMF, and OVMF must be compiled with Xen support (see below)
+
+Entering setup: `xl create -c` or connect to VNC. Mash the `ESC` key until it begins to load the gray screen.
+
+UEFI also requires a GPT-formatted disk with the UEFI FAT-formatted ESR partition on it as the first disk in the `disk` list (it doesn't have to be `xvda`, though)
+
+xl configuration:
+
+```ini
+serial = ["pty"]
+firmware = "uefi"
+# If you had to recompile OVMF: 
+#system_firmware="/path/to/XEN_OVMF.fd"
+```
+
+Note: UEFI is provide by OVMF, and is currently (as of 2025) broken.
+Broken packages:
+
+ * Debian 12 (not compiled with Xen support)
+ * OVMF since 202411 (https://github.com/tianocore/edk2/issues/11046[bug report])
+
+Working configurations:
+
+ * Debian 11
+ * OVMF compiled from source with OvmfXen from versions between (inclusive) 202305 and 202408
+
+
+==== Migrating from PV/PVH to HVM
+If you have a partitionless PVH system, and need to change to HVM, you must create a new disk.
+
+```bash
+storage=/var/local/share/xen-uefi-esp
+imagename=esp-gpt.img
+image="${storage}/${imagename}"
+mkdir -p "$storage"
+truncate -s 32M "$image" # minimum ~3M
+sgdisk -n 1:0:0 -c 1:MyHVM-ESP -t 1:ef00 "$image"
+losetup -f "$image"
+loopdev=$(losetup -lJ | jq 'first( .loopdevices[] | select( ."back-file" | endswith("'"$imagename"'") ) ).name' -r)
+partprobe $loopdev
+mkfs.vfat ${loopdev}p1
+losetup -d $loopdev
+```
+Attach this new disk. Then, in the domU, you must install the efi packages. Example Debian VM:
+```bash
+echo 'PARTLABEL="MyHVM-ESP" /boot/efi vfat defaults 0 0' >> /etc/fstab
+mkdir /boot/efi
+mount -a
+update-initramfs -u
+# If your ESP is too small, use the unsigned images that are ~300KB
+#apt install --no-install-recommends grub-efi-amd64
+# If your ESP is big enough, use the signed images that are ~5MB
+#sudo apt install grub-efi-amd64
+# If your VM don't need PVGrub or any other boot support
+sudo apt install grub-efi
+
+# Install (--target is required if you have pvgrub installed
+grub-install --target=x86_64-efi
+update-grub2
+# To avoid playing with EFI variables, move grub to the standard location
+mkdir /boot/efi/EFI/boot/
+cp /boot/efi/EFI/debian/grubx64.efi /boot/efi/EFI/boot/bootx64.efi
+```
+
+The command `grub-probe` generates warnings if you use `xvda1` partitions, instead of `xvda` disks, so if you use GRUB2 with UEFI, you may want to use `xvda` style names even if you have partitions.
+
+IMPORTANT: Don't forget to adjust the kernel and bootloader to use the correct serial port to work with HVM. See xlink:xenhelp-basics.adoc#_serial_console_options[the overview on serial options] for details.
+
+=== Booting - BIOS
+
+BIOS is the simplest of HVM boot options. BIOS requires either a disk with a MBR as the first disk in the `disk` list (it doesn't have to be `sda`, though), or a bootable CD-ROM, or PXE network booting set up.
+
+xl configuration:
+
+```ini
+firmware = "bios"
+
+# boot on hard disk (c), Network (n) or CD-ROM (d)
+# default: try the first hard disk, then try the cd-rom
+#boot="cd"
+```
+
+
+
+=== Booting - Direct Kernel Boot
+
+HVM BIOS boot also allows direct kernel booting. This is the same principal as PV/PVH direct kernel booting. In this configuration, we must store the kernel & initrd outside of the domU guest filesystem. In this example, they are stored in `/srv/myvm`:
+
+```ini
+firmware = "bios" # Optional
+boot="" # Optional, will make boots faster
+kernel = "/srv/myvm/vmlinuz"
+ramdisk = "/srv/myvm/initrd.img"
+cmdline = "root=/dev/xvda1 ro'
+```

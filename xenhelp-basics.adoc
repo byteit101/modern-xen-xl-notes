@@ -1,0 +1,85 @@
+= Recommended domU XL Configuration in Xen: Overview
+:author: byteit101
+:revnumber: 2025050801
+:license: Creative Commons Attribution-ShareAlike 4.0
+:toc:
+
+This document recommends how to configure most of XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg].
+
+== Recommended options
+
+* `name`. You must name your domain.
+* `uuid`. Use the `uuidgen` command to generate a new uuid. This identifies the domain
+* `memory`. Sets the number of megabytes of memory for this domain.
+* `vcpus`. Sets the number of vCPU's available for this domain.
+
+== Options to remove
+ * Do not use `root=`, instead preferring `cmdline=`.
+ * Remove the default `on_*` behavior selectors unless you want non-default behavior.
+ * Do not use `bios=`, instead preferring `firmware=`
+ 
+=== Linux kernel options
+`elevator=noop` and various IOMMU options are not necessary with modern kernels, and can be removed.
+
+== Memory Options
+Memory ballooning and Populate-on-Demmand (PoD) are configured via the `maxmem` option. They are incompatible with IOMMU (ie. PCI passthrough), and NUMA configuration. If you think you may want either of those options, do not set `maxmem`. It's not recommended to use memory ballooning unless you _really_ need it.
+
+== CPU Options
+If you need to add more CPUs, consider `maxvcpus`. More details, including CPU pinning, are available at the man pages under CPU Allocation and CPU Scheduling (https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html#CPU-Allocation[man 5 xl.cfg])
+
+== Disk Options
+See xref:xenhelp-disk.adoc[the disk page] for a full discussion.
+
+== Type & Boot Options
+See xref:xenhelp-boot.adoc[the type & boot page] for a full discussion.
+
+== Network Options
+
+The default network scripts don't set the ip addresses, but it is nice to keep around for reference. Use the following pattern for vif when using bridges (recommended):
+
+```ini
+vif = [
+'ip=10.1.2.3,mac=00:16:3E:00:11:22,bridge=xenbr0',
+]
+```
+
+To generate a random mac, use a script such as https://gist.github.com/viz3/6591201/648b9ebf4a72ba9a52c6889a37d60453783819a3[random_mac.py] or https://www.hellion.org.uk/cgi-bin/randmac.pl?scope=global&oui=00%3A16%3A3E&type=unicast[this online generator] (XEN OUI of 00:16:3e pre-configured)
+
+== PCI Passthrough (non GPU)
+Use a HVM with PVHVM drivers. Ignore the guest configuation on this partially-out-of-date wiki page: https://wiki.xenproject.org/wiki/Xen_PCI_Passthrough[Xen PCI Passthrough]
+
+PCI passthrough works with PV, but will add substantial overhead.
+
+PCI passthrough is not supported with PVH as of Xen 4.20.
+
+== USB Passthrough
+TODO
+
+== Serial Console Options
+It's generally not needed to be configured on PV & PVH, but we mention it here as a potential gotcha. With PV & PVH there is one console: the `pv` console. You generally don't need to worry about it. Linux calls it `hvc0`, and `pvgrub` and `pygrub` both support it and use it by default. In contrast, HVM has two consoles: the `pv` console and the qemu emulated uart console. Calling `xl console` will default to the latter. Linux calls this `ttyS0`
+
+* HVM + UEFI - do set `serial=['pty']`. I've that without it, you don't get any sort of console output
+* PV & PVH & HVM + BIOS - It is not necessary to set `serial=['pty']`, particularly if you are using GRUB 2.
+
+For the kernel, if you end up using GRUB2, either via PVGrub or grub-efi, you may need to adjust the serial command line arguments. We recommend editing `/etc/default/grub` as such, so that grub is visible on the console. Don't forget to run `update-grub2`.
+
+=== HVM
+```ini
+# For the kernel
+#GRUB_CMDLINE_LINUX_DEFAULT="debug loglevel=7"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+GRUB_CMDLINE_LINUX="console=ttyS0,115200n8 earlyprintk=serial"
+
+# For grub itself
+GRUB_TERMINAL="serial"
+GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"
+```
+
+=== PVH & PV
+```ini
+#GRUB_CMDLINE_LINUX_DEFAULT="debug loglevel=7"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+GRUB_CMDLINE_LINUX="console=hvc0 earlyprintk=xen"
+
+# No need to change GRUB_TERMINAL for PVGRUB
+```
