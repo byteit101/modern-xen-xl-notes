@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{page.title}}</title>
     <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
-    <meta name="author" content="Your name goes here">
-    <meta name="copyright" content="Maybe consider a Creative Commons license">
+    <meta name="author" content="byteit101">
+    <meta name="copyright" content="CC SA-BY 4.0">
     <link rel="stylesheet" href="{{page.root}}css/foundation.css">
     <style>pre > code { border: 0 }</style>
     <link rel="stylesheet" href="{{page.root}}css/font-awesome.css">
@@ -53,19 +53,14 @@
 
     <aside class="large-3 columns">
 
-        <h4>Posts</h4>
+        <h4>Docs</h4>
         <ul id="posts" class="posts nav">
-            {% for post in site.posts limit: 5 %}
-            <li><a href="{{ post.url | prepend:site.baseurl }}">{{ post.navtitle }}</a></li>
-            {% endfor %}
+            <!--{% for post in site.posts limit: 5 %}
+            {% endfor %}-->
+            <li><a href="https://byteit101.github.io/modern-xen-xl-notes/xenhelp-basics.html">Overview</a></li>
+            <li><a href="https://byteit101.github.io/modern-xen-xl-notes/xenhelp-boot.html">Type &amp; Boot</a></li>
+            <li><a href="https://byteit101.github.io/modern-xen-xl-notes/xenhelp-disk.html">Disk</a></li>
         </ul>
-
-        <div class="panel">
-            <h5>Featured</h5>
-
-            <p>Pork drumstick turkey fugiat. Tri-tip elit turducken pork chop in. Swine short ribs meatball irure bacon
-                nulla pork belly cupidatat meatloaf cow.</p>
-        </div>
 
     </aside>
 
@@ -82,7 +77,7 @@
         <hr>
         <div class="row">
             <div class="large-12 columns">
-                <p>Footer</p>
+                <p>CC-BY-SA 4.0. Updated 2025</p>
             </div>
         </div>
     </div>
