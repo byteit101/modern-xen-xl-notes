@@ -6,6 +6,7 @@
 
 This document recommends how to configure booting in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg]. For the other pages of this document, see xref:xenhelp-basics.adoc[the overview page].
 
+
 == Picking a Type
 
  * If your guest is native Linux, use PVH, unless you must use PCI passthrough, then use HVM with PVHVM for optimal performance.

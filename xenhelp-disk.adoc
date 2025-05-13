@@ -9,14 +9,13 @@ This document recommends how to configure disks in XL with "Modern" Xen (2020's 
 Recommended format examples:
 ```ini
 disk = [
-    'vdev=xvda1,    target=/dev/lvm/example_partition',
     'vdev=xvdb,     target=/dev/lvm/example_disk',
     'vdev=xvdb, format=raw, access=rw, target=disk/by-partlabel/myvm_disk',
     'vdev=sdc,  format=qcow2, access=rw, arget=/srv/example_disk2.qcow2',
     'vdev=hdd,  format=raw, access=ro, cdrom, target=/srv/my.iso',
 ]
 ```
-Note this uses the keyword arguments format, and not the deprecated format found on most of the older wiki pages here. Additionally, `target=` is always last, so that the disk path can contain spaces, commas, etc.
+Note this uses the keyword arguments format, and not the deprecated format found on most of the older wiki pages. Additionally, `target=` is always last, so that the disk path can contain spaces, commas, etc.
 
 == Parameter overview
 
@@ -47,9 +46,9 @@ This varies per domU type. In general, you should use `xvda`, `xvdb`, etc, for d
 
 For more detailed information, https://xenbits.xen.org/docs/unstable/man/xen-vbd-interface.7.html[man 7 xen-vbd-interface] has the lastest official information.
  
-If you are exposing a disk, use names without a partition number: `xvda`, `xvdb`, `xvdd`. Note that the names can be in any arbitrary order, including skipping letters, but we recommend keeping them sequential except in cases where you are hiding or reassembling a drive on HVM systems.
+It is recommend to expose names without a partition number: `xvda`, `xvdb`, `xvdd`. Note that the names can be in any arbitrary order, including skipping letters, but we recommend keeping them sequential except in cases where you are hiding or reassembling a drive on HVM systems.
 
-If you are exposing a partition on a Xen VDB, use names with a partition number: `xvda1`, `xvdb7`, `xvdf1`. Note that the partition number can be arbitrary, though we recommend sticking to just 1. Additionally, as with disk names, do note that the names can also be in any arbitrary order, including skipping letters, but we recommend keeping them sequential.
+It isn't recommended as they are not fully compatible with HVM, but if you are exposing a partition on a Xen VDB, you can use names with a partition number: `xvda1`, `xvdb7`, `xvdf1`. Note that the partition number can be arbitrary, though we recommend sticking to just 1. Additionally, as with disk names, do note that the names can also be in any arbitrary order, including skipping letters, but we recommend keeping them sequential.
 
 
 === PV & PVH

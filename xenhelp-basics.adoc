@@ -31,7 +31,7 @@ If you need to add more CPUs, consider `maxvcpus`. More details, including CPU p
 See xref:xenhelp-disk.adoc[the disk page] for a full discussion.
 
 == Type & Boot Options
-See xref:xenhelp-boot.adoc[the type & boot page] for a full discussion.
+See xref:xenhelp-boot.adoc[the type & boot page] for a full discussion. Also see xref:xenhelp-install.adoc[the installation page] for recommendations on how to install a guest image.
 
 == Network Options
 

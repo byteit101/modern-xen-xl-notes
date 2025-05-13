@@ -1,0 +1,28 @@
+= Recommended domU XL Configuration in Xen: Installation
+:author: byteit101
+:revnumber: 2025050801
+:license: Creative Commons Attribution-ShareAlike 4.0
+:toc:
+
+This document recommends how to install domU's in XL with "Modern" Xen (2020's hardware & software, Xen 4.17+, Linux 6.1+). This document was written and testing using Debian 12. The wiki has lots of examples from older versions of Xen that should be ignored. For full official documentation, see https://xenbits.xen.org/docs/unstable/man/xl.cfg.5.html[man 5 xl.cfg]. For the other pages of this document, see xref:xenhelp-basics.adoc[the overview page].
+
+
+== Pre-built Images
+
+Copy your image to a qcow2, raw file, partition, LVM LV, and boot as normal for your chosen domain type (PVH, PV, HVM).
+
+== Debian & Ubuntu
+
+Use `xen-create-image` from the `xen-tools` package:
+
+```
+xen-create-image --hostname=examplehostname --lvm=myexistingvg --noboot --memory=4096M --noswap --size=10G --vcpus=4 --bridge=xenbr0 --dhcp --dist=bookworm --passwd
+```
+
+See the `--help` and man pages for more options. You can add your own "roles" to tweak the images.
+
+WARNING: The resulting image & configuration are somewhat outdated. See the other sections of this guide to update them.
+
+== Other Installer ISO's
+
+Temporarily use HVM with cdrom to install, then switch to your chosen domain type (PVH, PV, HVM). You may need to manually install pvgrub.
