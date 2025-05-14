@@ -61,7 +61,7 @@ It's generally not needed to be configured on PV & PVH, but we mention it here a
 * HVM + UEFI - do set `serial=['pty']`. I've that without it, you don't get any sort of console output
 * PV & PVH & HVM + BIOS - It is not necessary to set `serial=['pty']`, particularly if you are using GRUB 2.
 
-For the kernel, if you end up using GRUB2, either via PVGrub or grub-efi, you may need to adjust the serial command line arguments. We recommend editing `/etc/default/grub` as such, so that grub is visible on the console. Don't forget to run `update-grub2`.
+For the kernel, if you end up using GRUB2, either via PVGrub2 or grub-efi, you may need to adjust the serial command line arguments. We recommend editing `/etc/default/grub` as such, so that grub is visible on the console. Don't forget to run `update-grub2`.
 
 === HVM
 ```ini
@@ -81,5 +81,5 @@ GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=
 GRUB_CMDLINE_LINUX_DEFAULT="quiet"
 GRUB_CMDLINE_LINUX="console=hvc0 earlyprintk=xen"
 
-# No need to change GRUB_TERMINAL for PVGRUB
+# No need to change GRUB_TERMINAL for PVGRUB2
 ```

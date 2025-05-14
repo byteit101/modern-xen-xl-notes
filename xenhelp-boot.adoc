@@ -27,7 +27,7 @@ PVH & PV are the simplest to configure in xl, but may require some work outside 
 === PVGRUB2 example
 The guest and the host must have grub2 compiled for Xen on it. Debian comes with `grub-xen` (for the guest) and `grub-xen-host` (for dom0) packaged. As with any grub2 package, the guest must run `grub-install` (performed by `apt` automatically) and `update-grub2` before booting.
 
-The command `grub-probe` generates warnings if you use `xvda1` partitions, instead of `xvda` disks, so if you use PVGRUB, you may want to use `xvda` style names even if you have partitions.
+The command `grub-probe` generates warnings if you use `xvda1` partitions, instead of `xvda` disks, so if you use PVGRUB2, you may want to use `xvda` style names even if you have partitions.
 
 ==== PVH domains
 Note: `fimware = "pvgrub64"` isn't supported in the Debian build of Xen.
@@ -184,10 +184,10 @@ update-initramfs -u
 #apt install --no-install-recommends grub-efi-amd64
 # If your ESP is big enough, use the signed images that are ~5MB
 #sudo apt install grub-efi-amd64
-# If your VM don't need PVGrub or any other boot support
+# If your VM don't need PVGrub2 or any other boot support
 sudo apt install grub-efi
 
-# Install (--target is required if you have pvgrub installed
+# Install (--target is required if you have pvgrub2 installed)
 grub-install --target=x86_64-efi
 update-grub2
 # To avoid playing with EFI variables, move grub to the standard location
