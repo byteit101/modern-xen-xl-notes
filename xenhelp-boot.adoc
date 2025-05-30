@@ -149,7 +149,7 @@ bios = "ovmf"
 
 NOTE: Do not use `firmware=`, but instead `bios=`. Setting `firmware=` doesn't allow overriding the OVMF firmware path.
 
-WARNING: UEFI is provide by OVMF, and is currently (as of 2025) broken.
+WARNING: UEFI is provide by OVMF, and is currently (as of 2025) https://github.com/tianocore/edk2/issues/11046[broken].
 
 Broken packages:
 
