@@ -141,12 +141,16 @@ xl configuration:
 
 ```ini
 serial = ["pty"]
-firmware = "uefi"
+bios = "ovmf"
+
 # If you had to recompile OVMF: 
-#system_firmware="/path/to/XEN_OVMF.fd"
+#bios_path_override="/path/to/XEN_OVMF.fd"
 ```
 
-Note: UEFI is provide by OVMF, and is currently (as of 2025) broken.
+NOTE: Do not use `firmware=`, but instead `bios=`. Setting `firmware=` doesn't allow overriding the OVMF firmware path.
+
+WARNING: UEFI is provide by OVMF, and is currently (as of 2025) broken.
+
 Broken packages:
 
  * Debian 12 (not compiled with Xen support)
@@ -206,6 +210,7 @@ BIOS is the simplest of HVM boot options. BIOS requires either a disk with a MBR
 xl configuration:
 
 ```ini
+# Optional for HVM, this is the default
 firmware = "bios"
 
 # boot on hard disk (c), Network (n) or CD-ROM (d)
@@ -213,6 +218,7 @@ firmware = "bios"
 #boot="cd"
 ```
 
+NOTE: Do not use `bios=` here, but instead either nothing (default is to use the bios), or `firmware="bios"`
 
 
 === Booting - Direct Kernel Boot

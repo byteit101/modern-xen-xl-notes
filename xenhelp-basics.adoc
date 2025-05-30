@@ -43,6 +43,8 @@ vif = [
 ]
 ```
 
+Recommendation: Use the default model, and not any other vif models.
+
 To generate a random mac, use a script such as https://gist.github.com/viz3/6591201/648b9ebf4a72ba9a52c6889a37d60453783819a3[random_mac.py] or https://www.hellion.org.uk/cgi-bin/randmac.pl?scope=global&oui=00%3A16%3A3E&type=unicast[this online generator] (XEN OUI of 00:16:3e pre-configured)
 
 == PCI Passthrough (non GPU)
